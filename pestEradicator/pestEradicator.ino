@@ -5,7 +5,7 @@
 
 //Timer
 #include <SimpleTimer.h>
-SimpleTimer timer;
+SimpleTimer timer; //may not work
 
 //Touch screen libraries + header files
 #include <stdint.h>
@@ -20,10 +20,10 @@ uint8_t addr  = 0x38;
 
 //Pin for touch screen
 #define RA8875_INT 4
-#define RA8875_CS 10 
+#define RA8875_CS 10
 #define RA8875_RESET 9
 #define FT5206_WAKE 6
-#define FT5206_INT   7    
+#define FT5206_INT   7
 Adafruit_RA8875 tft = Adafruit_RA8875(RA8875_CS, RA8875_RESET);
 uint16_t tx, ty;
 
@@ -51,13 +51,13 @@ uint8_t readFT5206TouchRegister( uint8_t reg ) {
   Wire.beginTransmission(addr);
   Wire.write( reg );  // register 0
   uint8_t retVal = Wire.endTransmission();
-  
+
   uint8_t returned = Wire.requestFrom(addr, uint8_t(1) );    // request 6 uint8_ts from slave device #2
-  
+
   if (Wire.available()) {
     retVal = Wire.read();
   }
-  
+
   return retVal;
 }
 
@@ -65,14 +65,14 @@ uint8_t readFT5206TouchAddr( uint8_t regAddr, uint8_t * pBuf, uint8_t len ) {
   Wire.beginTransmission(addr);
   Wire.write( regAddr );  // register 0
   uint8_t retVal = Wire.endTransmission();
-  
+
   uint8_t returned = Wire.requestFrom(addr, len);    // request 1 bytes from slave device #2
-  
+
   uint8_t i;
   for (i = 0; (i < len) && Wire.available(); i++) {
     pBuf[i] = Wire.read();
   }
-  
+
   return i;
 }
 
@@ -80,35 +80,35 @@ uint8_t readFT5206TouchLocation( TouchLocation * pLoc, uint8_t num ) {
   uint8_t retVal = 0;
   uint8_t i;
   uint8_t k;
-  
+
   do
   {
     if (!pLoc) break; // must have a buffer
     if (!num)  break; // must be able to take at least one
-    
+
     uint8_t status = readFT5206TouchRegister(2);
-    
+
     static uint8_t tbuf[40];
-    
+
     if ((status & 0x0f) == 0) break; // no points detected
-    
+
     uint8_t hitPoints = status & 0x0f;
-    
+
     Serial.print("number of hit points = ");
     Serial.println( hitPoints );
-    
+
     readFT5206TouchAddr( 0x03, tbuf, hitPoints*6);
-    
+
     for (k=0,i = 0; (i < hitPoints*6)&&(k < num); k++, i += 6)
     {
       pLoc[k].x = (tbuf[i+0] & 0x0f) << 8 | tbuf[i+1];
       pLoc[k].y = (tbuf[i+2] & 0x0f) << 8 | tbuf[i+3];
     }
-    
+
     retVal = k;
-    
+
   } while (0);
-  
+
   return retVal;
 }
 
@@ -117,8 +117,8 @@ void writeFT5206TouchRegister( uint8_t reg, uint8_t val)
   Wire.beginTransmission(addr);
   Wire.write( reg );  // register 0
   Wire.write( val );  // value
-  
-  uint8_t retVal = Wire.endTransmission();  
+
+  uint8_t retVal = Wire.endTransmission();
 }
 
 void readOriginValues(void)
@@ -130,7 +130,7 @@ void readOriginValues(void)
   uint8_t originXL = readFT5206TouchRegister(0x09);
   uint8_t originYH = readFT5206TouchRegister(0x0a);
   uint8_t originYL = readFT5206TouchRegister(0x0b);
-  
+
   uint8_t widthXH  = readFT5206TouchRegister(0x0c);
   uint8_t widthXL  = readFT5206TouchRegister(0x0d);
   uint8_t widthYH  = readFT5206TouchRegister(0x0e);
@@ -147,16 +147,16 @@ DallasTemperature sensors(&oneWire);
 //Add or delete these lines depending on how many temperature probes you have
 //See the tutorial on how to obtain these addresses:
 //http://www.hacktronics.com/Tutorials/arduino-1-wire-address-finder.html
-DeviceAddress Probe01 = { 0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C}; 
+DeviceAddress Probe01 = { 0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C};
 //DeviceAddress Probe02 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 //DeviceAddress Probe03 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
-//DeviceAddress Probe04 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65}; 
+//DeviceAddress Probe04 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65};
 //DeviceAddress Probe05 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 //DeviceAddress Probe06 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
-//DeviceAddress Probe07 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65}; 
+//DeviceAddress Probe07 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65};
 //DeviceAddress Probe08 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 //DeviceAddress Probe09 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
-//DeviceAddress Probe10 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65}; 
+//DeviceAddress Probe10 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65};
 //DeviceAddress Probe11 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 
 //Declare variables for motor pins (forward and reverse)
@@ -184,9 +184,9 @@ int displayTime = 5;
 int currentTime = 0;
 float waterLevel = 0.0;
 bool opModeFlag = 0;
+//
 
-void setup()
-{
+void setup(){
   //Start serial port to show results
   Serial.begin(9600);
   Serial.println("RA8875 start");
@@ -197,12 +197,12 @@ void setup()
   digitalWrite(FT5206_WAKE, HIGH );
   writeFT5206TouchRegister(0, eNORMAL);
 
-  while (!tft.begin(RA8875_800x480)) 
+  while (!tft.begin(RA8875_800x480))
   {
     Serial.println("RA8875 Not Found!");
     delay(100);
   }
-    
+
   Serial.println("Found RA8875");
 
   tft.displayOn(true);
@@ -212,19 +212,19 @@ void setup()
 
   tft.fillScreen(RA8875_WHITE);
   drawDisplay();
-  
+
   pinMode     (FT5206_INT, INPUT);
   //digitalWrite(FT5206_INT, HIGH );
-  
+
   tft.touchEnable(false);
-  
+
   randomSeed(analogRead(0));
 
   timer.setInterval(1000, getTime);
-  
+
   //Initialize the temperature measurement library
   sensors.begin();
-  
+
   //Set the resolution to 12 bit (Can be 9 to 12 bits... lower is faster)
   //Add or delete these lines depending on how many temperature probes you have
   sensors.setResolution(Probe01, 12);
@@ -252,25 +252,25 @@ void loop()
   while(opModeFlag == 0) {
     static uint16_t w = tft.width();
     static uint16_t h = tft.height();
-  
+
     float xScale = 1024.0F/w;
     float yScale = 1024.0F/h;
-  
+
     uint8_t attention = digitalRead(FT5206_INT);
     static uint8_t oldAttention = 1;
-  
+
     uint8_t i=0;
       /* Wait around for touch events */
-    if (!attention && oldAttention ) 
-    {   
+    if (!attention && oldAttention )
+    {
       uint8_t count = readFT5206TouchLocation( touchLocations, 5 );
-      
+
       //static uint8_t lastCount = count;
 
      if (count)
       {
         static TouchLocation lastTouch = touchLocations[0];
-        
+
         lastTouch = touchLocations[0];
 
         if (contains(lastTouch, 510, 55, 80, 80) && finalTemperature < 125) {
@@ -306,23 +306,32 @@ void loop()
 
   while (opModeFlag == 1) {
     delay(1000);
-    Serial.print("Number of Devices found on bus = ");  
-    Serial.println(sensors.getDeviceCount());   
-    Serial.print("Getting temperatures... ");  
-    Serial.println();   
-  
-    //Command all devices on bus to read temperature  
-    sensors.requestTemperatures();  
+   //Serial.print("Number of Devices found on bus = ");
+   //Serial.println(sensors.getDeviceCount());
+   //Serial.print("Getting temperatures... ");
+   //Serial.println();
+
+   //Command all devices on bus to read temperature
+   sensors.requestTemperatures();
+    //popup();
+    Serial.print("Number of Devices found on bus = ");
+    Serial.println(sensors.getDeviceCount());
+    Serial.print("Getting temperatures... ");
+    Serial.println();
+
+    //Command all devices on bus to read temperature
+    sensors.requestTemperatures();
 
     //Print all temperatures
     Serial.print("Probe 01 temperature is:   ");
-    printTemperature(Probe01);
+    float tempcurrent;
+    tempcurrent =printTemperature(Probe01);
     Serial.println();
-
+    popup(tempcurrent);
 //    Serial.print("Probe 02 temperature is:   ");
 //    printTemperature(Probe02);
 //    Serial.println();
-// 
+//
 //    Serial.print("Probe 03 temperature is:   ");
 //    printTemperature(Probe03);
 //    Serial.println();
@@ -334,7 +343,7 @@ void loop()
 //    Serial.print("Probe 05 temperature is:   ");
 //    printTemperature(Probe05);
 //    Serial.println();
-// 
+//
 //    Serial.print("Probe 06 temperature is:   ");
 //    printTemperature(Probe06);
 //    Serial.println();
@@ -346,7 +355,7 @@ void loop()
 //    Serial.print("Probe 08 temperature is:   ");
 //    printTemperature(Probe08);
 //    Serial.println();
-// 
+//
 //    Serial.print("Probe 09 temperature is:   ");
 //    printTemperature(Probe09);
 //    Serial.println();
@@ -360,8 +369,8 @@ void loop()
 //    Serial.println();
 
 //    printAverageTemperature();
-    printTemperature(Probe01);
-
+  //  printTemperature(Probe01);
+    //timer.run();
 //    float temperatureDifference = finalTemperature - averageTemperature;
     float temperatureDifference = finalTemperature - sensors.getTempF(Probe01);
 
@@ -386,10 +395,15 @@ void loop()
     }
 
 //    printAverageTemperature();
-    printTemperature(Probe01);
+  averageTemperature = printTemperature(Probe01);
 
     if (averageTemperature < finalTemperature) {
       stepHot();
+      stepOff();
+      delay(delayTime);
+    }
+    if (averageTemperature > finalTemperature) {
+      stepCold();
       stepOff();
       delay(delayTime);
     }
@@ -405,7 +419,7 @@ void loop()
 //      digitalWrite(relayPin, LOW);
 //      while(1) {}
 //    }
-    
+
     if (Serial.available() > 3) {
       for (int i = 0; i < 10; i++) {
         stepCold();
@@ -425,7 +439,7 @@ void stepHot() {
 //Decrease water temperature
 void stepCold() {
   digitalWrite(reverseMotorPin, LOW);
-//  printAverageTemperature;
+//  print;
   printTemperature(Probe01);
   delay(5000);
 }
@@ -438,7 +452,7 @@ void stepOff() {
 
 float checkWaterLevel() {
   voltage = (analogRead(pressurePin) * (5.0 / 1023.0));
-  
+
   waterLevel = ((voltage - 1.2) / 2.21) * 100;
 
   Serial.print("Water level is: ");
@@ -449,26 +463,27 @@ float checkWaterLevel() {
 
 //void printAverageTemperature() {
 //  Serial.print("Average temperature is:  ");
-//  averageTemperature = (sensors.getTempF(Probe01) + sensors.getTempF(Probe02) + sensors.getTempF(Probe03) + sensors.getTempF(Probe04) + sensors.getTempF(Probe05)) 
+//  averageTemperature = (sensors.getTempF(Probe01) + sensors.getTempF(Probe02) + sensors.getTempF(Probe03) + sensors.getTempF(Probe04) + sensors.getTempF(Probe05))
 //                         + sensors.getTempF(Probe06) + sensors.getTempF(Probe07) + sensors.getTempF(Probe08) + sensors.getTempF(Probe09) + sensors.getTempF(Probe10) + sensors.getTempF(Probe11)/11;
 //  Serial.print(averageTemperature);
 //  Serial.println();
 //}
 
-void printTemperature(DeviceAddress deviceAddress) {
+float printTemperature(DeviceAddress deviceAddress) {
 
   float tempC = sensors.getTempC(deviceAddress);
 
    if (tempC == -127.00) {
    Serial.print("Error getting temperature  ");
    }
-   
+
    else {
    Serial.print("C: ");
    Serial.print(tempC);
    Serial.print(" F: ");
    Serial.print(DallasTemperature::toFahrenheit(tempC));
    }
+   return tempC;
 }
 
 bool contains (TouchLocation lastTouch, int x, int y, int width, int height) {
@@ -507,7 +522,7 @@ void drawDisplay() {
   strcpy(char_array3, temp3.c_str());
   tft.textWrite(char_array3, 22);
   tft.textSetCursor(650, 25);
-  tft.textWrite("12:00 PM", 8);
+//  tft.textWrite("12:00 PM", 8);
 
   tft.graphicsMode();
   //Water tank
@@ -532,6 +547,42 @@ void drawDisplay() {
 }
 
 void getTime() {
+  int h, m, s;
   currentTime = millis() / 1000;
+  m = s / 60;
+  h = s / 3600;
+  s = s - m * 60;
+  m = m - h * 60;
+  Serial.print(h);
+  printDigits(m);
+  printDigits(s);
+  Serial.println();
 }
 
+void printDigits(int digits) {
+  Serial.print(":");
+  if(digits < 10)
+    Serial.print('0');
+  Serial.print(digits);
+}
+//we can make a another void loop similar to drawDisplay for the pop up when opModeFlag =1
+void popup(float tempcurrent){
+  tft.graphicsMode();
+  tft.fillRect(20,20,750,950, RA8875_BLUE);
+
+  tft.textMode();
+  tft.textSetCursor(165,140);
+  tft.textColor(RA8875_WHITE, RA8875_BLUE);
+  tft.textEnlarge(1);
+  String countdown = "Desired temp:"+ String(finalTemperature);
+  int sizeftemp = countdown.length();
+  char char_arrayftemp[sizeftemp + 1];
+  strcpy(char_arrayftemp, countdown.c_str());
+  tft.textWrite(char_arrayftemp, 17);
+  tft.textSetCursor(165,170);
+  String cTemp = "Current Temp:"+ String(tempcurrent);
+  int sizet = cTemp.length();
+  char char_arrayt[sizet + 1];
+  strcpy(char_arrayt, cTemp.c_str());
+  tft.textWrite(char_arrayt, 20);
+}
