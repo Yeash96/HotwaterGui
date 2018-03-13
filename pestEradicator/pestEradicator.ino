@@ -147,7 +147,7 @@ DallasTemperature sensors(&oneWire);
 //Add or delete these lines depending on how many temperature probes you have
 //See the tutorial on how to obtain these addresses:
 //http://www.hacktronics.com/Tutorials/arduino-1-wire-address-finder.html
-DeviceAddress Probe01 = { 0x28, 0xFF, 0x75, 0x1F, 0x60, 0x17, 0x05, 0x4D};//<comment this out use the bottom one
+DeviceAddress Probe01 = { 0x28, 0xFF, 0x75, 0x1F, 0x60, 0x17, 0x05, 0x4D};//<---------------comment this out use the on below this one
 //DeviceAddress Probe01 = { 0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C};
 //DeviceAddress Probe02 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 //DeviceAddress Probe03 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
@@ -161,7 +161,7 @@ DeviceAddress Probe01 = { 0x28, 0xFF, 0x75, 0x1F, 0x60, 0x17, 0x05, 0x4D};//<com
 //DeviceAddress Probe11 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 
 //Declare variables for motor pins (forward and reverse)
-int forwardMotorPin = 23;<------------------------------------------------------------------------------Pin Numbers 
+int forwardMotorPin = 23;//<------------------------------------------------------------------------------Pin Numbers
 int reverseMotorPin = 24;
 
 //Declare variable for relay pin
@@ -248,11 +248,12 @@ void setup(){
 }
 
 void loop(){
-   Serial.print("from the top");
-    tft.fillScreen(RA8875_WHITE);
-    drawDisplay();
-  while(opModeFlag == 0) {
 
+   Serial.print("from the top");
+    tft.fillScreen(RA8875_WHITE);//<-- clears screen and creates white backround
+    drawDisplay();//<---draws buttons
+  while(opModeFlag == 0) {
+// this is all hunters stuff I have not touched it for the most part. since it seems to work
     static uint16_t w = tft.width();
     static uint16_t h = tft.height();
 
@@ -380,8 +381,10 @@ void loop(){
 
 
     if (temperatureDifference > 63.0) {
-      stepTime = 3000;//< turns motor on for this long
-      delayTime = 4000;// time for it to exit if statement and restart loop
+      //------------------------------------------Zach you are going to have to play with these time vaules, for stepTime, delay time
+      //---------------------------------------------in each IF statement case.
+      stepTime = 3000;//<-------------------------------- turns motor on for this long
+      delayTime = 4000;//<------------------------ time for it to exit if statement and restart loop/ system delay time
     }
 
     else if (temperatureDifference < 63.0 && temperatureDifference > 20.0) {
@@ -439,15 +442,16 @@ void loop(){
       Serial.println(finalTemperature - tolerance);
       Serial.println(averageTemperature);
   if((averageTemperature < (finalTemperature + tolerance)) && (averageTemperature > (finalTemperature - tolerance)) ){
-    timerguistart();
-   Serial.println(displayTime);
-   int zep = displayTime;
+    //start the timer
+    timerguistart();//<display red line that counter has started
+   Serial.println(displayTime*60);
+   int zep = displayTime;//<- time user inputs is now called zep
       for( int i=0; i<=zep*60;i++){
         Serial.println(i);
-        delay(1000);
+        delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
         }
     digitalWrite(relayPin, LOW);
-    opModeFlag = 0;
+    opModeFlag = 0;//<--restarts the void loop and first while loop
 
   }
     }
