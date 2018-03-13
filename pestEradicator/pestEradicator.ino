@@ -16,7 +16,7 @@ uint8_t addr  = 0x38;
 #include "Adafruit_RA8875.h"
 
 //Pin for temperature sensors
-#define ONE_WIRE_BUS_PIN 31
+#define ONE_WIRE_BUS_PIN 31//<---------------------------pin for sensor signal
 
 //Pin for touch screen
 #define RA8875_INT 4
