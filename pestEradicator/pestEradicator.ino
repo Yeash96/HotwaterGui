@@ -16,7 +16,7 @@ uint8_t addr  = 0x38;
 #include "Adafruit_RA8875.h"
 
 //Pin for temperature sensors
-#define ONE_WIRE_BUS_PIN 3
+#define ONE_WIRE_BUS_PIN 31
 
 //Pin for touch screen
 #define RA8875_INT 4
@@ -147,7 +147,8 @@ DallasTemperature sensors(&oneWire);
 //Add or delete these lines depending on how many temperature probes you have
 //See the tutorial on how to obtain these addresses:
 //http://www.hacktronics.com/Tutorials/arduino-1-wire-address-finder.html
-DeviceAddress Probe01 = { 0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C};
+DeviceAddress Probe01 = { 0x28, 0xFF, 0x75, 0x1F, 0x60, 0x17, 0x05, 0x4D};//<comment this out use the bottom one
+//DeviceAddress Probe01 = { 0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C};
 //DeviceAddress Probe02 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 //DeviceAddress Probe03 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
 //DeviceAddress Probe04 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65};
@@ -160,18 +161,19 @@ DeviceAddress Probe01 = { 0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C};
 //DeviceAddress Probe11 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
 
 //Declare variables for motor pins (forward and reverse)
-int forwardMotorPin = 23;
+int forwardMotorPin = 23;<------------------------------------------------------------------------------Pin Numbers 
 int reverseMotorPin = 24;
 
 //Declare variable for relay pin
 int relayPin = 25;
 
 //Declare variable for submerged pressure pin
-int pressurePin = 41;
+int pressurePin = A10;
 
 //Declare variables for final temperatrue and current average temperature
 int finalTemperature = 110;
 float averageTemperature;
+float tolerance= 2;//<----------------------------------------------------------------------------tolerance for temp differance
 
 //Declare variables for "time to delay motor" and "time to step motor"
 int delayTime = 0;
@@ -210,8 +212,6 @@ void setup(){
   tft.PWM1config(true, RA8875_PWM_CLK_DIV1024); // PWM output for backlight
   tft.PWM1out(255);
 
-  tft.fillScreen(RA8875_WHITE);
-  drawDisplay();
 
   pinMode     (FT5206_INT, INPUT);
   //digitalWrite(FT5206_INT, HIGH );
@@ -244,12 +244,15 @@ void setup(){
   pinMode(forwardMotorPin, OUTPUT);
   pinMode(reverseMotorPin, OUTPUT);
 
-  //digitalWrite(relayPin, HIGH);
+  digitalWrite(relayPin, HIGH);
 }
 
-void loop()
-{
+void loop(){
+   Serial.print("from the top");
+    tft.fillScreen(RA8875_WHITE);
+    drawDisplay();
   while(opModeFlag == 0) {
+
     static uint16_t w = tft.width();
     static uint16_t h = tft.height();
 
@@ -273,22 +276,22 @@ void loop()
 
         lastTouch = touchLocations[0];
 
-        if (contains(lastTouch, 510, 55, 80, 80) && finalTemperature < 125) {
+        if (contains(lastTouch, 510, 55, 80, 80) && finalTemperature < 150) {
           finalTemperature++;
           delay(250);
           drawDisplay();
         }
-        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 110) {
+        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 60) {
           finalTemperature--;
           delay(250);
           drawDisplay();
         }
-        else if (contains(lastTouch, 510, 270, 80, 80) && displayTime < 20) {
+        else if (contains(lastTouch, 510, 270, 80, 80) && displayTime < 30) {
           displayTime++;
           delay(250);
           drawDisplay();
         }
-        else if (contains(lastTouch, 510, 370, 80, 80) && displayTime > 5) {
+        else if (contains(lastTouch, 510, 370, 80, 80) && displayTime > 1) {
           displayTime--;
           delay(250);
           drawDisplay();
@@ -296,7 +299,7 @@ void loop()
         else if (contains(lastTouch, 620, 410, 130, 50)) {
           //START SYSTEM
           opModeFlag = 1;
-          digitalWrite(relayPin, HIGH);
+          //digitalWrite(relayPin, HIGH);
         }
       }
     }
@@ -305,29 +308,28 @@ void loop()
   }
 
   while (opModeFlag == 1) {
-    delay(1000);
+    delay(500);
    //Serial.print("Number of Devices found on bus = ");
    //Serial.println(sensors.getDeviceCount());
    //Serial.print("Getting temperatures... ");
    //Serial.println();
 
    //Command all devices on bus to read temperature
-   sensors.requestTemperatures();
+   //sensors.requestTemperatures();
     //popup();
-    Serial.print("Number of Devices found on bus = ");
-    Serial.println(sensors.getDeviceCount());
-    Serial.print("Getting temperatures... ");
-    Serial.println();
+    //Serial.print("Number of Devices found on bus = ");
+    //Serial.println(sensors.getDeviceCount());
+    //Serial.print("Getting temperatures... ");
+    //Serial.println();
 
     //Command all devices on bus to read temperature
     sensors.requestTemperatures();
 
     //Print all temperatures
     Serial.print("Probe 01 temperature is:   ");
-    float tempcurrent;
-    tempcurrent =printTemperature(Probe01);
+    //tempcurrent =printTemperature(Probe01);
+    printTemperature(Probe01);
     Serial.println();
-    popup(tempcurrent);
 //    Serial.print("Probe 02 temperature is:   ");
 //    printTemperature(Probe02);
 //    Serial.println();
@@ -372,38 +374,42 @@ void loop()
   //  printTemperature(Probe01);
     //timer.run();
 //    float temperatureDifference = finalTemperature - averageTemperature;
-    float temperatureDifference = finalTemperature - sensors.getTempF(Probe01);
+    float tempcurrent = sensors.getTempF(Probe01);
+    popup(tempcurrent);
+    float temperatureDifference = finalTemperature - tempcurrent;
+
 
     if (temperatureDifference > 63.0) {
+      stepTime = 3000;//< turns motor on for this long
+      delayTime = 4000;// time for it to exit if statement and restart loop
+    }
+
+    else if (temperatureDifference < 63.0 && temperatureDifference > 20.0) {
       stepTime = 2000;
       delayTime = 4000;
     }
 
-    else if (temperatureDifference < 63.0 && temperatureDifference > 20.0) {
-      stepTime = 4000;
-      delayTime = 8000;
-    }
-
     else if (temperatureDifference < 20.0 && temperatureDifference > 10.0) {
-      stepTime = 4000;
-      delayTime = 8000;
+      stepTime = 1000;
+      delayTime = 4000;
     }
 
     else if (temperatureDifference < 10.0 && temperatureDifference > 1.0) {
-      stepTime = 4000;
-      delayTime = 10000;
+      stepTime = 500;
+      delayTime = 1000;
     }
 
 //    printAverageTemperature();
-  averageTemperature = printTemperature(Probe01);
+  averageTemperature = tempcurrent;
+  // printTemperature(Probe01);
 
     if (averageTemperature < finalTemperature) {
-      stepHot();
+      stepHot(stepTime);
       stepOff();
       delay(delayTime);
     }
     if (averageTemperature > finalTemperature) {
-      stepCold();
+      stepCold(stepTime);
       stepOff();
       delay(delayTime);
     }
@@ -420,28 +426,46 @@ void loop()
 //      while(1) {}
 //    }
 
-    if (Serial.available() > 3) {
-      for (int i = 0; i < 10; i++) {
-        stepCold();
+//    if (Serial.available() > 3) {
+//      for (int i = 0; i < 10; i++) {
+//        stepCold();
+//        }
+//      digitalWrite(relayPin, LOW);
+//      while(1) {}
+//      }
+      Serial.print("Avgtemp>");
+      Serial.println(finalTemperature + tolerance);
+      Serial.print("Avgtemp<");
+      Serial.println(finalTemperature - tolerance);
+      Serial.println(averageTemperature);
+  if((averageTemperature < (finalTemperature + tolerance)) && (averageTemperature > (finalTemperature - tolerance)) ){
+    timerguistart();
+   Serial.println(displayTime);
+   int zep = displayTime;
+      for( int i=0; i<=zep*60;i++){
+        Serial.println(i);
+        delay(1000);
         }
-      digitalWrite(relayPin, LOW);
-      while(1) {}
-      }
+    digitalWrite(relayPin, LOW);
+    opModeFlag = 0;
+
+  }
     }
 }
 
 //Increase water temperature
-void stepHot() {
+void stepHot(int stepTime) {
   digitalWrite(forwardMotorPin, HIGH);
   delay(stepTime);
+//digitalWrite(forwardMotorPin, LOW);
 }
 
 //Decrease water temperature
-void stepCold() {
-  digitalWrite(reverseMotorPin, LOW);
-//  print;
-  printTemperature(Probe01);
-  delay(5000);
+void stepCold(int stepTime) {
+  digitalWrite(reverseMotorPin, HIGH);
+
+  delay(stepTime);
+  //digitalWrite(reverseMotorPin, LOW);
 }
 
 //Turn off motor changing temperature
@@ -463,13 +487,13 @@ float checkWaterLevel() {
 
 //void printAverageTemperature() {
 //  Serial.print("Average temperature is:  ");
-//  averageTemperature = (sensors.getTempF(Probe01) + sensors.getTempF(Probe02) + sensors.getTempF(Probe03) + sensors.getTempF(Probe04) + sensors.getTempF(Probe05))
-//                         + sensors.getTempF(Probe06) + sensors.getTempF(Probe07) + sensors.getTempF(Probe08) + sensors.getTempF(Probe09) + sensors.getTempF(Probe10) + sensors.getTempF(Probe11)/11;
+//  averageTemperature = (sensors.getTempF(Probe01) + sensors.getTempF(Probe02) + sensors.getTempF(Probe03) + sensors.getTempF(Probe04) + sensors.getTempF(Probe05)
+//                         + sensors.getTempF(Probe06) + sensors.getTempF(Probe07) + sensors.getTempF(Probe08) + sensors.getTempF(Probe09) + sensors.getTempF(Probe10) + sensors.getTempF(Probe11))/11;
 //  Serial.print(averageTemperature);
 //  Serial.println();
 //}
 
-float printTemperature(DeviceAddress deviceAddress) {
+void printTemperature(DeviceAddress deviceAddress) {
 
   float tempC = sensors.getTempC(deviceAddress);
 
@@ -483,7 +507,7 @@ float printTemperature(DeviceAddress deviceAddress) {
    Serial.print(" F: ");
    Serial.print(DallasTemperature::toFahrenheit(tempC));
    }
-   return tempC;
+
 }
 
 bool contains (TouchLocation lastTouch, int x, int y, int width, int height) {
@@ -574,15 +598,27 @@ void popup(float tempcurrent){
   tft.textSetCursor(165,140);
   tft.textColor(RA8875_WHITE, RA8875_BLUE);
   tft.textEnlarge(1);
-  String countdown = "Desired temp:"+ String(finalTemperature);
-  int sizeftemp = countdown.length();
+  String dtemp = "Desired temp:"+ String(finalTemperature)+ " F";
+  int sizeftemp = dtemp.length();
   char char_arrayftemp[sizeftemp + 1];
-  strcpy(char_arrayftemp, countdown.c_str());
+  strcpy(char_arrayftemp, dtemp.c_str());
   tft.textWrite(char_arrayftemp, 17);
   tft.textSetCursor(165,170);
-  String cTemp = "Current Temp:"+ String(tempcurrent);
+  String cTemp = "Current Temp:"+ String(tempcurrent) + " F";
   int sizet = cTemp.length();
   char char_arrayt[sizet + 1];
   strcpy(char_arrayt, cTemp.c_str());
   tft.textWrite(char_arrayt, 20);
+}
+
+void timerguistart(){
+  tft.textMode();
+  tft.textSetCursor(165,200);
+  tft.textColor(RA8875_WHITE, RA8875_RED);
+  tft.textEnlarge(1);
+  String countdown = "Timer has started";
+  int sizeftemp = countdown.length();
+  char char_arrayftemp[sizeftemp + 1];
+  strcpy(char_arrayftemp, countdown.c_str());
+  tft.textWrite(char_arrayftemp, 17);
 }
