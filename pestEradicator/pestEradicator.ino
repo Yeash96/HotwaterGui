@@ -162,10 +162,10 @@ DeviceAddress Probe01 = { 0x28, 0xFF, 0x75, 0x1F, 0x60, 0x17, 0x05, 0x4D};//<---
 
 //Declare variables for motor pins (forward and reverse)
 int forwardMotorPin = 23;//<------------------------------------------------------------------------------Pin Numbers
-int reverseMotorPin = 24;
+int reverseMotorPin = 25;
 
 //Declare variable for relay pin
-int relayPin = 25;
+int relayPin = 27;
 
 //Declare variable for submerged pressure pin
 int pressurePin = A10;
