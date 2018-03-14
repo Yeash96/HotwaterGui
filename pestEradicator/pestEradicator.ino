@@ -253,8 +253,9 @@ void loop(){
    Serial.print("from the top");
     tft.fillScreen(RA8875_WHITE);//<-- clears screen and creates white backround
     drawDisplay();//<---draws buttons
-  while(opModeFlag == 0) {
+start: while(opModeFlag == 0) {
 // this is all hunters stuff I have not touched it for the most part. since it seems to work
+    digitalWrite(relayPin, LOW);
     static uint16_t w = tft.width();
     static uint16_t h = tft.height();
 
@@ -377,13 +378,13 @@ void loop(){
   //  printTemperature(Probe01);
     //timer.run();
 //    float temperatureDifference = finalTemperature - averageTemperature;
-float tempcurrent = sensors.getTempF(Probe01);
+    float tempcurrent = sensors.getTempF(Probe01);
     popup(tempcurrent);
     float temperatureDifference = abs(finalTemperature - tempcurrent);
-HotTempFinder:while(temperatureDifference > tolerance){
- tempcurrent = sensors.getTempF(Probe01);
-    popup(tempcurrent);
-     temperatureDifference = abs(finalTemperature - tempcurrent);
+  while(temperatureDifference > tolerance){
+      tempcurrent = sensors.getTempF(Probe01);
+      popup(tempcurrent);
+      temperatureDifference = abs(finalTemperature - tempcurrent);
 
 
     if (temperatureDifference > 63.0) {
@@ -422,6 +423,9 @@ HotTempFinder:while(temperatureDifference > tolerance){
       stepOff();
       delay(delayTime);
     }
+    tempcurrent = sensors.getTempF(Probe01);
+    popup(tempcurrent);
+    temperatureDifference = abs(finalTemperature - tempcurrent);
     }
 
 //    while(currentTime < displayTime * 60) {
@@ -460,7 +464,12 @@ HotTempFinder:while(temperatureDifference > tolerance){
         popup(tempcurrent);
           if((averageTemperature > (finalTemperature + tolerance)) || (averageTemperature < (finalTemperature - tolerance))){
             // if average temp is greater or less than the range break out of do loop
-            goto HotTempFinder;//<---restart the while loop
+            hcf();
+            digitalWrite(relayPin, LOW);
+            restart();
+            delay(5000);
+            opModeFlag=0;
+            goto start;//<---restart the while loop
           }
         }
         hcc();
@@ -693,7 +702,20 @@ void hcc(){
   char char_arrayhcc[sizehcctxt + 1];
   strcpy(char_arrayhcc, hcctxt.c_str());
   tft.textWrite(char_arrayhcc, 19);
+
 }
+void hcf(){
+  tft.textMode();
+  tft.textSetCursor(165,230);
+  tft.textColor(RA8875_WHITE, RA8875_RED);
+  tft.textEnlarge(1);
+  String hcftxt = "hot cycle failed";
+  int sizehcftxt = hcftxt.length();
+  char char_arrayhcf[sizehcftxt + 1];
+  strcpy(char_arrayhcf, hcftxt.c_str());
+  tft.textWrite(char_arrayhcf, 19);
+}
+
 void coldcs(){
   tft.textMode();
   tft.textSetCursor(165,200);
