@@ -245,7 +245,7 @@ void setup(){
   pinMode(forwardMotorPin, OUTPUT);
   pinMode(reverseMotorPin, OUTPUT);
 
-  digitalWrite(relayPin, HIGH);
+//  digitalWrite(relayPin, HIGH);
 }
 
 void loop(){
@@ -311,6 +311,7 @@ void loop(){
 
   while (opModeFlag == 1) {
     delay(500);
+    digitalWrite(relayPin, HIGH)
    //Serial.print("Number of Devices found on bus = ");
    //Serial.println(sensors.getDeviceCount());
    //Serial.print("Getting temperatures... ");
