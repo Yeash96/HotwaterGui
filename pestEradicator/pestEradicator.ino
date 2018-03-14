@@ -174,7 +174,7 @@ int pressurePin = A10;
 int finalTemperature = 114;//<-----------------------must be greater then coldtemp
 float averageTemperature;
 float tolerance= 2;//<----------------------------------------------------------------------------tolerance for temp differance
-int coldtemp = 113;//<------------will be less then this
+int coldtemp = 75;//<------------will be less then this
 //Declare variables for "time to delay motor" and "time to step motor"
 int delayTime = 0;
 int stepTime = 0;
@@ -283,7 +283,7 @@ void loop(){
           delay(250);
           drawDisplay();
         }
-        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 113) {//<------------if you change finalTemperature  or coldtemp must change x in >x
+        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 80) {//<------------if you change finalTemperature  or coldtemp must change x in >x
           finalTemperature--;
           delay(250);
           drawDisplay();
@@ -309,7 +309,7 @@ void loop(){
     else {}
   }
 
-  while (opModeFlag == 1) {
+ while (opModeFlag == 1) {
     delay(500);
     digitalWrite(relayPin, HIGH);
    //Serial.print("Number of Devices found on bus = ");
@@ -377,9 +377,13 @@ void loop(){
   //  printTemperature(Probe01);
     //timer.run();
 //    float temperatureDifference = finalTemperature - averageTemperature;
-    float tempcurrent = sensors.getTempF(Probe01);
+float tempcurrent = sensors.getTempF(Probe01);
     popup(tempcurrent);
-    float temperatureDifference = finalTemperature - tempcurrent;
+    float temperatureDifference = abs(finalTemperature - tempcurrent);
+HotTempFinder:while(temperatureDifference > tolerance){
+ tempcurrent = sensors.getTempF(Probe01);
+    popup(tempcurrent);
+     temperatureDifference = abs(finalTemperature - tempcurrent);
 
 
     if (temperatureDifference > 63.0) {
@@ -418,6 +422,7 @@ void loop(){
       stepOff();
       delay(delayTime);
     }
+    }
 
 //    while(currentTime < displayTime * 60) {
 //      Serial.print(
@@ -451,11 +456,20 @@ void loop(){
       for( int i=0; i<=zep*60;i++){
         Serial.println(i);
         delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
+        tempcurrent = sensors.getTempF(Probe01);
+        popup(tempcurrent);
+          if((averageTemperature > (finalTemperature + tolerance)) || (averageTemperature < (finalTemperature - tolerance))){
+            // if average temp is greater or less than the range break out of do loop
+            goto HotTempFinder;//<---restart the while loop
+          }
         }
+        hcc();
+        coldcs();
         while(averageTemperature > coldtemp){
           //so while teh average temp is > then cold temp fiddle with mixing valve motors
-          averageTemperature = sensors.getTempF(Probe01);
-          //update averageTemperature
+           averageTemperature = sensors.getTempF(Probe01);
+          tempcurrent = averageTemperature;
+           popup(tempcurrent);
           float temperatureDifference = averageTemperature - coldtemp;
           //the diffrence in averageTemperature and coldtemp
           if (temperatureDifference > 63.0) {
@@ -487,8 +501,12 @@ void loop(){
           //when at coldtemp or lower wait five minutes
           Serial.println(z);
           delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
+          tempcurrent = sensors.getTempF(Probe01);
+          popup(tempcurrent);
           }
-
+          coldcc();
+          restart();
+          delay(5000);
     digitalWrite(relayPin, LOW);//<-----turn off pumps
     opModeFlag = 0;//<--restarts the void loop and first while loop
 
@@ -664,4 +682,48 @@ void timerguistart(){
   char char_arrayftemp[sizeftemp + 1];
   strcpy(char_arrayftemp, countdown.c_str());
   tft.textWrite(char_arrayftemp, 17);
+}
+void hcc(){
+  tft.textMode();
+  tft.textSetCursor(165,230);
+  tft.textColor(RA8875_WHITE, RA8875_BLUE);
+  tft.textEnlarge(1);
+  String hcctxt = "hot cycle complete";
+  int sizehcctxt = hcctxt.length();
+  char char_arrayhcc[sizehcctxt + 1];
+  strcpy(char_arrayhcc, hcctxt.c_str());
+  tft.textWrite(char_arrayhcc, 19);
+}
+void coldcs(){
+  tft.textMode();
+  tft.textSetCursor(165,200);
+  tft.textColor(RA8875_WHITE, RA8875_RED);
+  tft.textEnlarge(1);
+  String ccs = "cold cycle has started";
+  int sizeccs = ccs.length();
+  char char_arrayccs[sizeccs + 1];
+  strcpy(char_arrayccs, ccs.c_str());
+  tft.textWrite(char_arrayccs, 23);
+}
+void coldcc(){
+  tft.textMode();
+  tft.textSetCursor(165,230);
+  tft.textColor(RA8875_WHITE, RA8875_BLUE);
+  tft.textEnlarge(1);
+  String ccc = "cold cycle has ended";
+  int sizeccc = ccc.length();
+  char char_arrayccc[sizeccc + 1];
+  strcpy(char_arrayccc, ccc.c_str());
+  tft.textWrite(char_arrayccc, 23);
+}
+void restart(){
+  tft.textMode();
+  tft.textSetCursor(165,260);
+  tft.textColor(RA8875_WHITE, RA8875_RED);
+  tft.textEnlarge(1);
+  String restart = "system restart in 5 sec";
+  int sizerestart = restart.length();
+  char char_arrayrestart[sizerestart + 1];
+  strcpy(char_arrayrestart, restart.c_str());
+  tft.textWrite(char_arrayrestart, 23);
 }
