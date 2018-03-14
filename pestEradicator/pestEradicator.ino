@@ -4,8 +4,8 @@
 #include <DallasTemperature.h>
 
 //Timer
-#include <SimpleTimer.h>
-SimpleTimer timer; //may not work
+//#include <SimpleTimer.h>
+//SimpleTimer timer; //may not work
 
 //Touch screen libraries + header files
 #include <stdint.h>
@@ -221,7 +221,7 @@ void setup(){
 
   randomSeed(analogRead(0));
 
-  timer.setInterval(1000, getTime);
+//  timer.setInterval(1000, getTime);
 
   //Initialize the temperature measurement library
   sensors.begin();
