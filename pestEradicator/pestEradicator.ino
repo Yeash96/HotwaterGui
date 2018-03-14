@@ -171,14 +171,15 @@ int relayPin = 25;
 int pressurePin = A10;
 
 //Declare variables for final temperatrue and current average temperature
-int finalTemperature = 110;
+int finalTemperature = 114;//<-----------------------must be greater then coldtemp
 float averageTemperature;
 float tolerance= 2;//<----------------------------------------------------------------------------tolerance for temp differance
-
+int coldtemp = 113;//<------------will be less then this
 //Declare variables for "time to delay motor" and "time to step motor"
 int delayTime = 0;
 int stepTime = 0;
-
+int cdelayTime = 0;
+int cstepTime = 0;
 //Declare variable for voltage of pressure pin
 float voltage = 0.0;
 
@@ -277,12 +278,12 @@ void loop(){
 
         lastTouch = touchLocations[0];
 
-        if (contains(lastTouch, 510, 55, 80, 80) && finalTemperature < 150) {
+        if (contains(lastTouch, 510, 55, 80, 80) && finalTemperature < 160) {
           finalTemperature++;
           delay(250);
           drawDisplay();
         }
-        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 60) {
+        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 113) {//<------------if you change finalTemperature  or coldtemp must change x in >x
           finalTemperature--;
           delay(250);
           drawDisplay();
@@ -450,7 +451,44 @@ void loop(){
         Serial.println(i);
         delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
         }
-    digitalWrite(relayPin, LOW);
+        while(averageTemperature > coldtemp){
+          //so while teh average temp is > then cold temp fiddle with mixing valve motors
+          averageTemperature = sensors.getTempF(Probe01);
+          //update averageTemperature
+          float temperatureDifference = averageTemperature - coldtemp;
+          //the diffrence in averageTemperature and coldtemp
+          if (temperatureDifference > 63.0) {
+            //if the diffrence is large turn alot and wait for reaction
+            cstepTime = 3000;
+            cdelayTime = 4000;
+          }
+
+          else if (temperatureDifference < 63.0 && temperatureDifference > 20.0) {
+            cstepTime = 2000;
+            cdelayTime = 4000;
+          }
+
+          else if (temperatureDifference < 20.0 && temperatureDifference > 10.0) {
+            cstepTime = 1000;
+            cdelayTime = 4000;
+          }
+
+          else if (temperatureDifference < 10.0 && temperatureDifference > 5.0) {
+            cstepTime = 500;
+            cdelayTime = 1000;
+          }
+          // use step cold function to change mixer valve in colder direction
+            stepCold(cstepTime);
+            stepOff();//<---stop turning the mixer valve
+            delay(cdelayTime);//<---time for system to react
+        }
+        for( int z=0; z<=5*60;z++){
+          //when at coldtemp or lower wait five minutes
+          Serial.println(z);
+          delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
+          }
+
+    digitalWrite(relayPin, LOW);//<-----turn off pumps
     opModeFlag = 0;//<--restarts the void loop and first while loop
 
   }
