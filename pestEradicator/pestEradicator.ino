@@ -382,9 +382,6 @@ start: while(opModeFlag == 0) {
     popup(tempcurrent);
     float temperatureDifference = abs(finalTemperature - tempcurrent);
   while(temperatureDifference > tolerance){
-      tempcurrent = sensors.getTempF(Probe01);
-      popup(tempcurrent);
-      temperatureDifference = abs(finalTemperature - tempcurrent);
 
 
     if (temperatureDifference > 63.0) {
@@ -410,7 +407,7 @@ start: while(opModeFlag == 0) {
     }
 
 //    printAverageTemperature();
-  averageTemperature = tempcurrent;
+     averageTemperature = tempcurrent;
   // printTemperature(Probe01);
 
     if (averageTemperature < finalTemperature) {
@@ -457,9 +454,9 @@ start: while(opModeFlag == 0) {
     timerguistart();//<display red line that counter has started
    Serial.println(displayTime*60);
    int zep = displayTime;//<- time user inputs is now called zep
-      for( int i=0; i<=zep*60;i++){
+      for( int i=0; i<=zep*600;i++){
         Serial.println(i);
-        delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
+        delay(100);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
         tempcurrent = sensors.getTempF(Probe01);
         popup(tempcurrent);
           if((averageTemperature > (finalTemperature + tolerance)) || (averageTemperature < (finalTemperature - tolerance))){
