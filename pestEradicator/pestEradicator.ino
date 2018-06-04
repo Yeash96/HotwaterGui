@@ -147,18 +147,8 @@ DallasTemperature sensors(&oneWire);
 //Add or delete these lines depending on how many temperature probes you have
 //See the tutorial on how to obtain these addresses:
 //http://www.hacktronics.com/Tutorials/arduino-1-wire-address-finder.html
-DeviceAddress Probe01 = { 0x28, 0xFF, 0x75, 0x1F, 0x60, 0x17, 0x05, 0x4D};//<---------------comment this out use the on below this one
-//DeviceAddress Probe01 = { 0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C};
-//DeviceAddress Probe02 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
-//DeviceAddress Probe03 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
-//DeviceAddress Probe04 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65};
-//DeviceAddress Probe05 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
-//DeviceAddress Probe06 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
-//DeviceAddress Probe07 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65};
-//DeviceAddress Probe08 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
-//DeviceAddress Probe09 = { 0x28, 0xFF, 0x41, 0xC6, 0x02, 0x17, 0x04, 0xF0};
-//DeviceAddress Probe10 = { 0x28, 0xFF, 0x64, 0x56, 0x02, 0x17, 0x05, 0x65};
-//DeviceAddress Probe11 = { 0x28, 0xFF, 0xCA, 0xB5, 0x02, 0x17, 0x04, 0x6B};
+DeviceAddress Probe01 = {0x28, 0xFF, 0x1A, 0x61, 0xB1, 0x17, 0x05, 0x3C};//<---------------comment this out use the on below this one
+
 
 //Declare variables for motor pins (forward and reverse)
 int forwardMotorPin = 23;//<------------------------------------------------------------------------------Pin Numbers
@@ -173,7 +163,7 @@ int pressurePin = A10;
 //Declare variables for final temperatrue and current average temperature
 int finalTemperature = 114;//<-----------------------must be greater then coldtemp
 float averageTemperature;
-float tolerance= 2;//<----------------------------------------------------------------------------tolerance for temp differance
+float tolerance=1;//<----------------------------------------------------------------------------tolerance for temp differance
 int coldtemp = 75;//<------------will be less then this
 //Declare variables for "time to delay motor" and "time to step motor"
 int delayTime = 0;
@@ -229,16 +219,7 @@ void setup(){
   //Set the resolution to 12 bit (Can be 9 to 12 bits... lower is faster)
   //Add or delete these lines depending on how many temperature probes you have
   sensors.setResolution(Probe01, 12);
-//  sensors.setResolution(Probe02, 12);
-//  sensors.setResolution(Probe03, 12);
-//  sensors.setResolution(Probe04, 12);
-//  sensors.setResolution(Probe05, 12);
-//  sensors.setResolution(Probe06, 12);
-//  sensors.setResolution(Probe07, 12);
-//  sensors.setResolution(Probe08, 12);
-//  sensors.setResolution(Probe09, 12);
-//  sensors.setResolution(Probe10, 12);
-//  sensors.setResolution(Probe11, 12);
+
 
   //Set all the motor control pins to outputs
   pinMode(relayPin, OUTPUT);
@@ -284,7 +265,7 @@ start: while(opModeFlag == 0) {
           delay(250);
           drawDisplay();
         }
-        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 80) {//<------------if you change finalTemperature  or coldtemp must change x in >x
+        else if (contains(lastTouch, 510, 155, 80, 80) && finalTemperature > 75) {//<------------if you change finalTemperature  or coldtemp must change x in >x
           finalTemperature--;
           delay(250);
           drawDisplay();
@@ -311,6 +292,7 @@ start: while(opModeFlag == 0) {
   }
 
  while (opModeFlag == 1) {
+   Serial.println("opModeFlag == 1");
     delay(500);
     digitalWrite(relayPin, HIGH);
    //Serial.print("Number of Devices found on bus = ");
@@ -325,60 +307,15 @@ start: while(opModeFlag == 0) {
     //Serial.println(sensors.getDeviceCount());
     //Serial.print("Getting temperatures... ");
     //Serial.println();
+    tft.graphicsMode();//<-paint the screen blue
+    tft.fillRect(20,20,750,950, RA8875_BLUE);//Paint the screen Blue
 
     //Command all devices on bus to read temperature
     sensors.requestTemperatures();
-
-    //Print all temperatures
+    float tempcurrent = sensors.getTempF(Probe01);
     Serial.print("Probe 01 temperature is:   ");
-    //tempcurrent =printTemperature(Probe01);
     printTemperature(Probe01);
     Serial.println();
-//    Serial.print("Probe 02 temperature is:   ");
-//    printTemperature(Probe02);
-//    Serial.println();
-//
-//    Serial.print("Probe 03 temperature is:   ");
-//    printTemperature(Probe03);
-//    Serial.println();
-//
-//    Serial.print("Probe 04 temperature is:   ");
-//    printTemperature(Probe04);
-//    Serial.println();
-//
-//    Serial.print("Probe 05 temperature is:   ");
-//    printTemperature(Probe05);
-//    Serial.println();
-//
-//    Serial.print("Probe 06 temperature is:   ");
-//    printTemperature(Probe06);
-//    Serial.println();
-//
-//    Serial.print("Probe 07 temperature is:   ");
-//    printTemperature(Probe07);
-//    Serial.println();
-//
-//    Serial.print("Probe 08 temperature is:   ");
-//    printTemperature(Probe08);
-//    Serial.println();
-//
-//    Serial.print("Probe 09 temperature is:   ");
-//    printTemperature(Probe09);
-//    Serial.println();
-//
-//    Serial.print("Probe 10 temperature is:   ");
-//    printTemperature(Probe10);
-//    Serial.println();
-//
-//    Serial.print("Probe 11 temperature is:   ");
-//    printTemperature(Probe11);
-//    Serial.println();
-
-//    printAverageTemperature();
-  //  printTemperature(Probe01);
-    //timer.run();
-//    float temperatureDifference = finalTemperature - averageTemperature;
-    float tempcurrent = sensors.getTempF(Probe01);
     popup(tempcurrent);
     float temperatureDifference = abs(finalTemperature - tempcurrent);
   while(temperatureDifference > tolerance){
@@ -403,7 +340,7 @@ start: while(opModeFlag == 0) {
 
     else if (temperatureDifference < 10.0 && temperatureDifference > 1.0) {
       stepTime = 500;
-      delayTime = 1000;
+      delayTime = 8000;
     }
 
 //    printAverageTemperature();
@@ -420,45 +357,33 @@ start: while(opModeFlag == 0) {
       stepOff();
       delay(delayTime);
     }
+    sensors.requestTemperatures();
     tempcurrent = sensors.getTempF(Probe01);
     popup(tempcurrent);
     temperatureDifference = abs(finalTemperature - tempcurrent);
     }
-
-//    while(currentTime < displayTime * 60) {
-//      Serial.print(
-//    }
-//
-//    if (currentTime >= displayTime * 60) {
-//      for (int i = 0; i < 10; i++) {
-//        stepCold();
-//        }
-//      digitalWrite(relayPin, LOW);
-//      while(1) {}
-//    }
-
-//    if (Serial.available() > 3) {
-//      for (int i = 0; i < 10; i++) {
-//        stepCold();
-//        }
-//      digitalWrite(relayPin, LOW);
-//      while(1) {}
-//      }
+    sensors.requestTemperatures();
+    tempcurrent = sensors.getTempF(Probe01);
+    popup(tempcurrent);
+    averageTemperature  = sensors.getTempF(Probe01);
       Serial.print("Avgtemp>");
       Serial.println(finalTemperature + tolerance);
       Serial.print("Avgtemp<");
       Serial.println(finalTemperature - tolerance);
       Serial.println(averageTemperature);
-  if((averageTemperature < (finalTemperature + tolerance)) && (averageTemperature > (finalTemperature - tolerance)) ){
+  if((averageTemperature <= (finalTemperature + tolerance)) && (averageTemperature >= (finalTemperature - tolerance)) ){
     //start the timer
     timerguistart();//<display red line that counter has started
    Serial.println(displayTime*60);
    int zep = displayTime;//<- time user inputs is now called zep
-      for( int i=0; i<=zep*600;i++){
+      for( int i=0; i<=zep*60;i++){
         Serial.println(i);
-        delay(100);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
+        delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
+        sensors.requestTemperatures();
         tempcurrent = sensors.getTempF(Probe01);
         popup(tempcurrent);
+        averageTemperature  = sensors.getTempF(Probe01);
+
           if((averageTemperature > (finalTemperature + tolerance)) || (averageTemperature < (finalTemperature - tolerance))){
             // if average temp is greater or less than the range break out of do loop
             hcf();
@@ -471,9 +396,14 @@ start: while(opModeFlag == 0) {
         }
         hcc();
         coldcs();
+        sensors.requestTemperatures();
+        tempcurrent = sensors.getTempF(Probe01);
+        popup(tempcurrent);
+        averageTemperature  = sensors.getTempF(Probe01);
         while(averageTemperature > coldtemp){
           //so while teh average temp is > then cold temp fiddle with mixing valve motors
-           averageTemperature = sensors.getTempF(Probe01);
+          sensors.requestTemperatures();
+          averageTemperature = sensors.getTempF(Probe01);
           tempcurrent = averageTemperature;
            popup(tempcurrent);
           float temperatureDifference = averageTemperature - coldtemp;
@@ -507,8 +437,10 @@ start: while(opModeFlag == 0) {
           //when at coldtemp or lower wait five minutes
           Serial.println(z);
           delay(1000);//<-- becuase int is too small to hold total time in miliseconds this loop delays for every second for zep*60 amount
+          sensors.requestTemperatures();
           tempcurrent = sensors.getTempF(Probe01);
           popup(tempcurrent);
+          averageTemperature = sensors.getTempF(Probe01);
           }
           coldcc();
           restart();
@@ -658,8 +590,8 @@ void printDigits(int digits) {
 }
 //we can make a another void loop similar to drawDisplay for the pop up when opModeFlag =1
 void popup(float tempcurrent){
-  tft.graphicsMode();
-  tft.fillRect(20,20,750,950, RA8875_BLUE);
+//  tft.graphicsMode();
+//  tft.fillRect(20,20,750,950, RA8875_BLUE);
 
   tft.textMode();
   tft.textSetCursor(165,140);
