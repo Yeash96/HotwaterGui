@@ -155,6 +155,7 @@ int forwardMotorPin = 23;//<----------------------------------------------------
 int reverseMotorPin = 25;
 
 //Declare variable for relay pin
+bool pump=0;
 int relayPin = 27;
 
 //Declare variable for submerged pressure pin
@@ -176,7 +177,7 @@ float voltage = 0.0;
 int displayTime = 5;
 int currentTime = 0;
 float waterLevel = 0.0;
-bool opModeFlag = 0;
+int opModeFlag = 0;
 //
 
 void setup(){
@@ -248,8 +249,7 @@ start: while(opModeFlag == 0) {
 
     uint8_t i=0;
       /* Wait around for touch events */
-    if (!attention && oldAttention )
-    {
+    if (!attention && oldAttention ){
       uint8_t count = readFT5206TouchLocation( touchLocations, 5 );
 
       //static uint8_t lastCount = count;
@@ -285,13 +285,23 @@ start: while(opModeFlag == 0) {
           opModeFlag = 1;
           //digitalWrite(relayPin, HIGH);
         }
+        else if (contains(lastTouch, 620, 45, 130, 50)) {
+          //START SYSTEM
+         Serial.println(opModeFlag);
+
+          opModeFlag = 2;
+          Serial.println("opModeFlag=2------");
+          Serial.println(opModeFlag);
+          //digitalWrite(relayPin, HIGH);
+        }
+        
       }
     }
 
     else {}
   }
 
- while (opModeFlag == 1) {
+while ((opModeFlag == 1)== true) {
    Serial.println("opModeFlag == 1");
     delay(500);
     digitalWrite(relayPin, HIGH);
@@ -450,6 +460,66 @@ start: while(opModeFlag == 0) {
 
   }
     }
+  tft.fillScreen(RA8875_WHITE);
+while ((opModeFlag == 2)==true) {
+  //tft.fillScreen(RA8875_WHITE);
+  directGui();
+  pump_button_off();
+  digitalWrite(relayPin, LOW);
+  while(true){
+    static uint16_t w = tft.width();
+    static uint16_t h = tft.height();
+    float xScale = 1024.0F/w;
+    float yScale = 1024.0F/h;
+
+    uint8_t attention = digitalRead(FT5206_INT);
+    static uint8_t oldAttention = 1;
+    uint8_t i=0;
+      /* Wait around for touch events */
+    if (!attention && oldAttention ){
+      uint8_t count = readFT5206TouchLocation( touchLocations, 5 );
+
+      //static uint8_t lastCount = count;
+
+     if (count)
+      {
+        static TouchLocation lastTouch = touchLocations[0];
+
+        lastTouch = touchLocations[0];
+
+        if (contains(lastTouch, 310, 55, 80, 80)) {
+         Serial.println("up");
+         digitalWrite(forwardMotorPin, HIGH);
+         delay(500);
+         stepOff();
+         delay(500);
+        }
+        else if (contains(lastTouch, 310, 155, 80, 80)){
+         Serial.println("down");
+         digitalWrite(reverseMotorPin, HIGH);
+         delay(500);
+         stepOff();
+         delay(500);
+        }
+        else if (contains(lastTouch,100, 255, 130, 80)&& (pump == 0) ) {
+          pump_button_on();
+          Serial.println("on");
+          digitalWrite(relayPin, HIGH);
+          pump=1;
+          delay(1000);
+        }
+      else if (contains(lastTouch,100, 255, 130, 80)&& (pump == 1) ) {
+          pump_button_off();
+          pump=0;
+          digitalWrite(relayPin, LOW);
+          delay(1000);
+        }      
+      }
+  }
+  }
+  delay(1000); 
+}
+
 }
 
 //Increase water temperature
@@ -567,6 +637,15 @@ void drawDisplay() {
   tft.fillRect(510, 370, 80, 80, RA8875_BLACK);
   tft.fillTriangle(550, 280, 520, 340, 580, 340, RA8875_YELLOW);
   tft.fillTriangle(550, 440, 520, 380, 580, 380, RA8875_YELLOW);
+
+  //Direct_control_button
+  tft.fillRect(620, 55, 130, 60, RA8875_RED);
+  tft.textMode();
+  tft.textSetCursor(635, 65);
+  tft.textColor(RA8875_BLACK, RA8875_RED);
+  tft.textEnlarge(1);
+  tft.textWrite("Direct", 6);
+  
 }
 
 void getTime() {
